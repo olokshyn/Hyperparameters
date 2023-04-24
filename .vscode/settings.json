@@ -1,0 +1,19 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
+        "editor.tabSize": 4,
+        "editor.rulers": [
+            90,
+            120
+        ]
+    },
+    "python.languageServer": "Default",
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black",
+    "python.linting.mypyEnabled": true,
+    "autoDocstring.docstringFormat": "google"
+}
