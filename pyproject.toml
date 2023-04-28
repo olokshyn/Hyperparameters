@@ -9,10 +9,15 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "~3.10"
 pydantic = "^1.10.7"
+ray = {extras = ["tune"], version = "^2.4.0", optional = true}
+
+[tool.poetry.extras]
+ray = ["ray"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
 black = "^23.3.0"
+pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core"]
