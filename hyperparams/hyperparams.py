@@ -1,6 +1,6 @@
 import argparse
 from functools import partial, wraps
-from typing import Any, Iterator, TypeVar
+from typing import Any, Iterator, TypeVar, Protocol, _ProtocolMeta
 
 from pydantic.fields import Field, Undefined, Validator
 from pydantic.main import BaseModel, ModelField, ModelMetaclass
@@ -47,10 +47,7 @@ def _choices_validator(value: Any, *, field_name: str, choices: list[Any]) -> No
     return value
 
 
-SelfHyperparams = TypeVar("SelfHyperparams", bound="Hyperparams")
-
-
-class HyperparamsMeta(ModelMetaclass):
+class HyperparamsMeta(ModelMetaclass, _ProtocolMeta):
     def __new__(mcs, name, bases, namespace, **kwargs) -> type[BaseModel]:
         cls: type[BaseModel] = super().__new__(mcs, name, bases, namespace, **kwargs)
         field: ModelField
@@ -96,7 +93,35 @@ class HyperparamsMeta(ModelMetaclass):
         return cls
 
 
-class Hyperparams(BaseModel, metaclass=HyperparamsMeta):
+SelfHyperparamsProtocol = TypeVar(
+    "SelfHyperparamsProtocol", bound="HyperparamsProtocol"
+)
+
+
+class HyperparamsProtocol(Protocol):
+    @classmethod
+    def add_arguments(
+        cls: type[SelfHyperparamsProtocol], parser: argparse.ArgumentParser
+    ) -> None:
+        ...
+
+    @classmethod
+    def from_arguments(
+        cls: type[SelfHyperparamsProtocol],
+        args: argparse.Namespace,
+        **overrides,
+    ) -> SelfHyperparamsProtocol:
+        ...
+
+    @classmethod
+    def _tunable_params(cls) -> Iterator[tuple[str, HyperparamInfo]]:
+        ...
+
+
+SelfHyperparams = TypeVar("SelfHyperparams", bound="Hyperparams")
+
+
+class Hyperparams(BaseModel, HyperparamsProtocol, metaclass=HyperparamsMeta):
     class Config:
         validate_assignment = True
         arbitrary_types_allowed = True
