@@ -4,6 +4,13 @@ Are you tired of repeating hyperparameters in code, `argparse` definitions, and 
 
 `Hyperparameters` lets you define your hyperparameters once and use everywhere! Moreover, you get type linting and spelling checks for free!
 
+## Quickstart
+
+Install `Hyperparameters`:
+```bash
+pip install hyperparameters
+```
+
 Define your parameters once using the `Hyperparams` class:
 
 ```python
