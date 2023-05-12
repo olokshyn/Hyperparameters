@@ -2,7 +2,7 @@ from typing import Any
 
 from ray import tune
 
-from hyperparams.hyperparams import HyperparamsProtocol
+from hyperparameters.hyperparams import HyperparamsProtocol
 
 
 class RayTuneHyperparamsMixin(HyperparamsProtocol):

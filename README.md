@@ -1,15 +1,15 @@
-# Hyperparams
+# Hyperparameters
 
 Are you tired of repeating hyperparameters in code, `argparse` definitions, and hyperparameter tunning libraries?
 
-`Hyperparams` lets you define your hyperparameters once and use everywhere! Moreover, you get type linting and spelling checks for free!
+`Hyperparameters` lets you define your hyperparameters once and use everywhere! Moreover, you get type linting and spelling checks for free!
 
 Define your parameters once using the `Hyperparams` class:
 
 ```python
 from argparse import ArgumentParser
 
-from hyperparams import HP, Hyperparams
+from hyperparameters import HP, Hyperparams
 
 
 class MyHyperparams(Hyperparams):
@@ -63,7 +63,7 @@ options:
   --use-dropout         Whether the dropout layers should be activated
   --no-use-dropout      Disable: Whether the dropout layers should be activated
 ```
-As can be seen from the above, `Hyperparams` takes care of low level details for you:
+As can be seen from the above, `Hyperparameters` takes care of low level details for you:
 
 1. The `--train-data-path` parameter is required because we didn't provide a default value for it. All other parameters are optional.
 2. You can provide the `--use-dropout` or the `--no-use-dropout` flag, but not both at the same time. Neither flag is required, as the `use_dropout` parameter has a default value.
@@ -73,12 +73,12 @@ As can be seen from the above, `Hyperparams` takes care of low level details for
 
 
 ## Hypertunning
-Different hypertunning libraries provide different APIs for defining search spaces. `Hyperparams` can be easily extended to support any hypertunning library. You can do it yourself following the steps discussed below - it's easy! The `ray.tune` library is supported out of the box.
+Different hypertunning libraries provide different APIs for defining search spaces. `Hyperparameters` can be easily extended to support any hypertunning library. You can do it yourself following the steps discussed below - it's easy! The `ray.tune` library is supported out of the box.
 
-When defining hypertunable parameters with `Hyperparams`, make sure to inherit from both the `Hyperparams` class and the mixin class specific to your hypertunning library. Here is an example for `ray.tune`:
+When defining hypertunable parameters with `Hyperparameters`, make sure to inherit from both the `Hyperparams` class and the mixin class specific to your hypertunning library. Here is an example for `ray.tune`:
 ```python
-from hyperparams import HP, Hyperparams
-from hyperparams.ray_tune_hyperparams import RayTuneHyperparamsMixin
+from hyperparameters import HP, Hyperparams
+from hyperparameters.ray_tune_hyperparams import RayTuneHyperparamsMixin
 
 
 class MyHyperparams(Hyperparams, RayTuneHyperparamsMixin):
@@ -102,8 +102,8 @@ Here is a complete example of defining parameters hypertunable with `ray.tune`:
 ```python
 from ray import tune
 
-from hyperparams import HP, Hyperparams
-from hyperparams.ray_tune_hyperparams import RayTuneHyperparamsMixin
+from hyperparameters import HP, Hyperparams
+from hyperparameters.ray_tune_hyperparams import RayTuneHyperparamsMixin
 
 
 class MyHyperparams(Hyperparams, RayTuneHyperparamsMixin):
@@ -133,14 +133,14 @@ MyHyperparams.ray_tune_best_values()
 
 ### Supporting other hypertunning libraries
 
-In `Hyperparams`, the logic specific to hypertunning libraries is implemented with mixin classes. This means that you can add many mixins to your parameters and support several hypertunning libraries at once.
+In `Hyperparameters`, the logic specific to hypertunning libraries is implemented with mixin classes. This means that you can add many mixins to your parameters and support several hypertunning libraries at once.
 
-The best place to start is to review the implementation of the `RayTuneHyperparamsMixin` class in `hyperparams/ray_tune_hyperparams.py`.
+The best place to start is to review the implementation of the `RayTuneHyperparamsMixin` class in `hyperparameters/ray_tune_hyperparams.py`.
 
 The class implementing a new hypertunning library must:
 
-1. Inherit from `hyperparams.hyperparams.HyperparamsProtocol`.
-2. Provide class methods for converting the params data stored in `hyperparams.hyperparams.HyperparamInfo` structure into a format that the hypertunning library understands.
+1. Inherit from `hyperparameters.hyperparams.HyperparamsProtocol`.
+2. Provide class methods for converting the params data stored in `hyperparameters.hyperparams.HyperparamInfo` structure into a format that the hypertunning library understands.
 3. Use the `cls._tunable_params()` to get the info about the parameters.
 4. Wrap `info.choices` in a proper type for the hypertunning library.
 5. Provide a method for returning the best parameter values to start the hypertunning from.

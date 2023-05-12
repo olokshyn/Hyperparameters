@@ -2,8 +2,8 @@ import pytest
 from pytest import approx
 from ray import tune
 
-from hyperparams import HP, Hyperparams
-from hyperparams.ray_tune_hyperparams import RayTuneHyperparamsMixin
+from hyperparameters import HP, Hyperparams
+from hyperparameters.ray_tune_hyperparams import RayTuneHyperparamsMixin
 
 
 @pytest.fixture

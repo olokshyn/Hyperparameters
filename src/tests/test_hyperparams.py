@@ -3,8 +3,8 @@ import argparse
 from pydantic import ValidationError
 from pytest import approx
 
-from hyperparams import HP, Hyperparams
-from hyperparams.hyperparams import HyperparamInfo
+from hyperparameters import HP, Hyperparams
+from hyperparameters.hyperparams import HyperparamInfo
 
 
 def test_argparse_basic_fields() -> None:
