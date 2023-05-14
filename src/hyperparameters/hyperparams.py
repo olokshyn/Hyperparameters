@@ -22,6 +22,8 @@ class HyperparamInfo(BaseModel):
     required: bool = False
 
     def can_be_none(self) -> bool:
+        if self.annotation is Any:
+            return True
         return getattr(self.annotation, "_name", None) == "Optional"
 
 
@@ -89,7 +91,7 @@ class HyperparamsMeta(ModelMetaclass, _ProtocolMeta):
                     )
 
             if info.type_ is bool:
-                if info.choices is not None:
+                if info.choices is not None and info.choices != [False, True]:
                     raise ValueError(
                         f"Field {field_name} is bool and cannot have choices set. "
                         "False and True are the only possible choices."

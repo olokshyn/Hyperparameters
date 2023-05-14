@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Hyperparameters"
-version = "0.2.0"
+version = "0.2.1"
 description = "Define your Hyperparameters once and use in argparse, hypertunning libraries, and as strongly-typed attributes in code!"
 authors = ["Oleh Lokshyn <olokshyn@gmail.com>"]
 license = "MIT"

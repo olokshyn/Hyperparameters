@@ -28,7 +28,7 @@ def test_parameters() -> None:
         )
         flag: bool = HP(
             "Not required as default is specified",
-            default=True,
+            default=False,
         )
 
     assert TestHyperparams.parameters() == {
@@ -74,7 +74,7 @@ def test_parameters() -> None:
         ),
         "flag": HyperparamInfo(
             description="Not required as default is specified",
-            default=True,
+            default=False,
             tunable=False,
             search_space=None,
             choices=[False, True],
