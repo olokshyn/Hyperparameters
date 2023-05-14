@@ -11,34 +11,44 @@ Install `Hyperparameters`:
 pip install hyperparameters
 ```
 
+You need to install the `ray.tune` package separately if you want to use the `ray.tune` hypertunning integration:
+```bash
+pip install -U "ray[tune]"
+```
+
 Define your parameters once using the `Hyperparams` class:
 
 ```python
 from argparse import ArgumentParser
+from typing import Optional
 
 from hyperparameters import HP, Hyperparams
 
 
 class MyHyperparams(Hyperparams):
     epochs: int = HP(
-        description="Number of epochs to train for",
+        "Number of epochs to train for",
         default=5,
     )
     lr: float = HP(
-        description="Learning rate",
+        "Learning rate",
         default=1e-3,
     )
     tokenizer: str = HP(
-        description="HF tokenizer to use",
+        "HF tokenizer to use",
         default="BPE",
         choices=["BPE", "WordPiece"],
     )
     train_data_path: str = HP(
-        description="Path to the training dataset",
+        "Path to the training dataset",
     )
     use_dropout: bool = HP(
-        description="Whether the dropout layers should be activated",
+        "Whether the dropout layers should be activated",
         default=True,
+    )
+    pretrained_weights: Optional[str] = HP(
+        "Path to the pretrained model weights, if any",
+        default=None,
     )
 
 
@@ -55,9 +65,8 @@ print(params.dict())
 
 Let's see the registered arguments by running the code above with `--help`:
 ```
-usage: example.py [-h] [--epochs EPOCHS] [--lr LR] [--tokenizer {BPE,WordPiece}]
-                  --train-data-path TRAIN_DATA_PATH
-                  [--use-dropout | --no-use-dropout]
+usage: example.py [-h] [--epochs EPOCHS] [--lr LR] [--tokenizer {BPE,WordPiece}] --train-data-path TRAIN_DATA_PATH [--use-dropout | --no-use-dropout]
+                  [--pretrained-weights PRETRAINED_WEIGHTS]
 
 options:
   -h, --help            show this help message and exit
@@ -69,14 +78,26 @@ options:
                         Path to the training dataset
   --use-dropout         Whether the dropout layers should be activated
   --no-use-dropout      Disable: Whether the dropout layers should be activated
+  --pretrained-weights PRETRAINED_WEIGHTS
+                        Path to the pretrained model weights, if any
 ```
 As can be seen from the above, `Hyperparameters` takes care of low level details for you:
 
 1. The `--train-data-path` parameter is required because we didn't provide a default value for it. All other parameters are optional.
-2. You can provide the `--use-dropout` or the `--no-use-dropout` flag, but not both at the same time. Neither flag is required, as the `use_dropout` parameter has a default value.
-3. The `--tokenizer` parameter can only be `BPE` or `WordPiece`. Providing any other value results in an error.
-4. The data types of the parameters are parsed from strings and validated according to the type hints in the `MyHyperparams` class. 
-5. The default values are used whenever an argument is ommitted. Let's check that by running with `--train-data-path mydata/`: the script prints: `{'epochs': 5, 'lr': 0.001, 'tokenizer': 'BPE', 'train_data_path': 'mydata/', 'use_dropout': True}`.
+2. Even though the default value for `--pretrained-weights` is `None`, this parameter is optional. However, we had to use the `Optional[str]` type hint.
+3. You can provide the `--use-dropout` or the `--no-use-dropout` flag, but not both at the same time. Neither flag is required, as the `use_dropout` parameter has a default value.
+4. The `--tokenizer` parameter can only be `BPE` or `WordPiece`. Providing any other value results in an error.
+5. The data types of the parameters are parsed from strings and validated according to the type hints in the `MyHyperparams` class. 
+6. The default values are used whenever an argument is ommitted. Let's check that by running with `--train-data-path mydata/`: the script prints: `{'epochs': 5, 'lr': 0.001, 'tokenizer': 'BPE', 'train_data_path': 'mydata/', 'use_dropout': True, 'pretrained_weights': None}`.
+
+
+### Default values and required parameters
+
+1. If a default value is omitted completely, the parameter will be required.
+2. Otherwise, if any default value is specified, even `None`, the parameter will be optional.
+3. You must use the `Optional` type hint if the default value is `None`.
+4. You can't have `bool` parameters with `None` as default. Flags that can be `None` just don't make any sense.
+5. You can't have choice parameters with `None` as default. If you need this, just add a "null" value to the list of choices.
 
 
 ## Hypertunning
@@ -115,18 +136,18 @@ from hyperparameters.ray_tune_hyperparams import RayTuneHyperparamsMixin
 
 class MyHyperparams(Hyperparams, RayTuneHyperparamsMixin):
     lr: float = HP(
-        description="Learning rate",
+        "Learning rate",
         default=1e-3,
         search_space=tune.loguniform(1e-5, 1e-2),
     )
     layers_num: int = HP(
-        description="Number of model layers",
+        "Number of model layers",
         default=8,
         tunable=True,
         choices=[4, 8, 16, 24],
     )
     use_dropout: bool = HP(
-        description="Whether the dropout layers should be activated",
+        "Whether the dropout layers should be activated",
         default=True,
         tunable=True,
     )

@@ -1,5 +1,3 @@
-from .hyperparams import Hyperparam, Hyperparams
-
-HP = Hyperparam
+from .hyperparams import HP, Hyperparams
 
 __all__ = ["Hyperparams", "HP"]

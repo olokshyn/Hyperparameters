@@ -10,33 +10,33 @@ from hyperparameters.ray_tune_hyperparams import RayTuneHyperparamsMixin
 def test_hyperparams_cls() -> type[RayTuneHyperparamsMixin]:
     class TestHyperparams(Hyperparams, RayTuneHyperparamsMixin):
         field1: int = HP(
-            description="Field1 description",
+            "Field1 description",
             default=13,
             search_space=tune.randint(3, 33),
         )
         field2: float = HP(
-            description="Field2 description",
+            "Field2 description",
             default=0.33,
             search_space=tune.loguniform(1e-5, 1e-2),
         )
         field3: int = HP(
-            description="Field3 description",
+            "Field3 description",
             default=5,
             tunable=True,
             choices=[1, 3, 5, 7, 9, 11, 13],
         )
         field4: bool = HP(
-            description="Field4 description",
+            "Field4 description",
             default=True,
             tunable=True,
         )
         field5: str = HP(
-            description="Field5 description",
+            "Field5 description",
             tunable=True,
             choices=["up", "right", "down", "left"],
         )
         field6: str = HP(
-            description="Field6 description",
+            "Field6 description",
             tunable=True,
             default="empty",
         )
