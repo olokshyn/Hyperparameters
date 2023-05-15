@@ -1,6 +1,7 @@
 import argparse
+import os
 from functools import partial, wraps
-from typing import Any, Iterator, TypeVar, Protocol, _ProtocolMeta
+from typing import Any, Iterator, TypeVar, Protocol, _ProtocolMeta, Optional
 
 from pydantic.fields import Field, Undefined, Validator
 from pydantic.main import BaseModel, ModelField, ModelMetaclass
@@ -16,6 +17,7 @@ class HyperparamInfo(BaseModel):
     tunable: bool = False
     search_space: Any = None
     choices: list[Any] | None = None
+    is_path: bool = False
 
     annotation: Any = None
     type_: Any = None
@@ -34,6 +36,7 @@ def HP(
     tunable: bool | None = None,
     search_space: Any = None,
     choices: list[Any] | None = None,
+    is_path: bool = False,
 ):
     field = Field(
         default=default,
@@ -45,6 +48,7 @@ def HP(
         tunable=tunable if tunable is not None else search_space is not None,
         search_space=search_space,
         choices=choices,
+        is_path=is_path,
     )
     return field
 
@@ -65,9 +69,27 @@ def _load_info(field_name: str, field: ModelField) -> HyperparamInfo:
     return info
 
 
+def _get_config_value(cls: type, name: str, default: Any) -> Any:
+    for curr_cls in cls.__mro__:
+        config = getattr(curr_cls, "Config", None)
+        if config is None:
+            continue
+        if hasattr(config, name):
+            return getattr(config, name)
+    return default
+
+
+def _get_relative_paths_root(cls: type) -> Optional[str]:
+    should_adjust = _get_config_value(cls, "adjust_relative_paths", False)
+    if not should_adjust:
+        return None
+    return _get_config_value(cls, "relative_paths_root", None)
+
+
 class HyperparamsMeta(ModelMetaclass, _ProtocolMeta):
     def __new__(mcs, name, bases, namespace, **kwargs) -> type[BaseModel]:
         cls: type[BaseModel] = super().__new__(mcs, name, bases, namespace, **kwargs)
+        relative_paths_root = _get_relative_paths_root(cls)
         field: ModelField
         for field_name, field in cls.__fields__.items():
             info = _load_info(field_name, field)
@@ -75,6 +97,16 @@ class HyperparamsMeta(ModelMetaclass, _ProtocolMeta):
             info.type_ = field.type_
             info.annotation = field.annotation
             info.required = field.required is True
+
+            if (
+                relative_paths_root
+                and info.is_path
+                and info.default is not None
+                and not os.path.isabs(info.default)
+            ):
+                value = os.path.join(relative_paths_root, info.default)
+                info.default = value
+                field.default = value
 
             if not info.required:
                 if info.default is None and not info.can_be_none():
@@ -158,8 +190,32 @@ SelfHyperparams = TypeVar("SelfHyperparams", bound="Hyperparams")
 
 class Hyperparams(BaseModel, HyperparamsProtocol, metaclass=HyperparamsMeta):
     class Config:
+        # BaseModel configs
         validate_assignment = True
         arbitrary_types_allowed = True
+
+        # Hyperparams config
+        adjust_relative_paths: bool = False
+        relative_paths_root: str = os.getcwd()
+
+    def __init__(self, **data: Any) -> None:
+        relative_paths_root = _get_relative_paths_root(self.__class__)
+        if relative_paths_root:
+            for name in data:
+                if name not in self.__fields__:
+                    continue
+                info: HyperparamInfo = _load_info(name, self.__fields__[name])
+                if info.is_path and not os.path.isabs(data[name]):
+                    data[name] = os.path.join(relative_paths_root, data[name])
+        super().__init__(**data)
+
+    def __setattr__(self, name, value) -> None:
+        relative_paths_root = _get_relative_paths_root(self.__class__)
+        if relative_paths_root:
+            info: HyperparamInfo = _load_info(name, self.__fields__[name])
+            if info.is_path and not os.path.isabs(value):
+                value = os.path.join(relative_paths_root, value)
+        return super().__setattr__(name, value)
 
     @classmethod
     def parameters(cls: type[SelfHyperparams]) -> dict[str, HyperparamInfo]:

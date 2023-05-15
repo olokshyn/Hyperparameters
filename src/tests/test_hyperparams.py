@@ -1,4 +1,5 @@
 import argparse
+import os
 from typing import Optional
 
 from pydantic import ValidationError
@@ -133,6 +134,139 @@ def test_wrong_default_for_type() -> None:
         assert False
     except ValueError as e:
         assert "wrong_default" in str(e)
+
+
+def test_adjust_relative_paths() -> None:
+    class TestHyperparamsAdjustPaths(Hyperparams):
+        class Config:
+            adjust_relative_paths = True
+            relative_paths_root = "/rootdir"
+
+        relative_path: str = HP(
+            "Relative path",
+            default="my/relative/path",
+            is_path=True,
+        )
+        absolute_path: str = HP(
+            "Absolute path",
+            default="/my/absolute/path",
+            is_path=True,
+        )
+        not_a_path: str = HP(
+            "Not a path",
+            default="Some/string",
+        )
+
+    p1 = TestHyperparamsAdjustPaths()
+    assert p1.relative_path == "/rootdir/my/relative/path"
+    assert p1.absolute_path == "/my/absolute/path"
+    assert p1.not_a_path == "Some/string"
+
+    p1.relative_path = "other/relative/path"
+    p1.absolute_path = "/other/absolute/path"
+    p1.not_a_path = "other/string"
+    assert p1.relative_path == "/rootdir/other/relative/path"
+    assert p1.absolute_path == "/other/absolute/path"
+    assert p1.not_a_path == "other/string"
+
+    p1 = TestHyperparamsAdjustPaths(
+        relative_path="new/relative/path",
+        absolute_path="/new/absolute/path",
+        not_a_path="new/string",
+    )
+    assert p1.relative_path == "/rootdir/new/relative/path"
+    assert p1.absolute_path == "/new/absolute/path"
+    assert p1.not_a_path == "new/string"
+
+    p1.relative_path = "other/relative/path"
+    p1.absolute_path = "/other/absolute/path"
+    p1.not_a_path = "other/string"
+    assert p1.relative_path == "/rootdir/other/relative/path"
+    assert p1.absolute_path == "/other/absolute/path"
+    assert p1.not_a_path == "other/string"
+
+    class TestHyperparamsAdjustPathsDefaultRoot(Hyperparams):
+        class Config:
+            adjust_relative_paths = True
+
+        relative_path: str = HP(
+            "Relative path",
+            default="my/relative/path",
+            is_path=True,
+        )
+        absolute_path: str = HP(
+            "Absolute path",
+            default="/my/absolute/path",
+            is_path=True,
+        )
+        not_a_path: str = HP(
+            "Not a path",
+            default="Some/string",
+        )
+
+    p2 = TestHyperparamsAdjustPathsDefaultRoot()
+    assert p2.relative_path == os.path.join(os.getcwd(), "my/relative/path")
+    assert p2.absolute_path == "/my/absolute/path"
+    assert p2.not_a_path == "Some/string"
+
+    p2.relative_path = "other/relative/path"
+    p2.absolute_path = "/other/absolute/path"
+    p2.not_a_path = "other/string"
+    assert p2.relative_path == os.path.join(os.getcwd(), "other/relative/path")
+    assert p2.absolute_path == "/other/absolute/path"
+    assert p2.not_a_path == "other/string"
+
+    class TestHyperparamsDontAdjustPaths(Hyperparams):
+        class Config:
+            adjust_relative_paths = False
+
+        relative_path: str = HP(
+            "Relative path",
+            default="my/relative/path",
+            is_path=True,
+        )
+        absolute_path: str = HP(
+            "Absolute path",
+            default="/my/absolute/path",
+            is_path=True,
+        )
+        not_a_path: str = HP(
+            "Not a path",
+            default="Some/string",
+        )
+
+    p3 = TestHyperparamsDontAdjustPaths()
+    assert p3.relative_path == "my/relative/path"
+    assert p3.absolute_path == "/my/absolute/path"
+    assert p3.not_a_path == "Some/string"
+
+    p3.relative_path = "other/relative/path"
+    p3.absolute_path = "/other/absolute/path"
+    p3.not_a_path = "other/string"
+    assert p3.relative_path == "other/relative/path"
+    assert p3.absolute_path == "/other/absolute/path"
+    assert p3.not_a_path == "other/string"
+
+    class TestHyperparamsNoConfig(Hyperparams):
+        relative_path: str = HP(
+            "Relative path",
+            default="my/relative/path",
+            is_path=True,
+        )
+        absolute_path: str = HP(
+            "Absolute path",
+            default="/my/absolute/path",
+            is_path=True,
+        )
+        not_a_path: str = HP(
+            "Not a path",
+            default="Some/string",
+        )
+
+    p4 = TestHyperparamsNoConfig()
+    assert p4.relative_path == "my/relative/path"
+    assert p4.absolute_path == "/my/absolute/path"
+    assert p4.not_a_path == "Some/string"
 
 
 def test_argparse_basic_fields() -> None:
