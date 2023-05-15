@@ -121,7 +121,7 @@ Next, you can specify the search spaces:
 
 Note that when using the `search_space` parameter, you don't need to use the `tunable` parameter.
 
-Finally, you are ready to use the mixin-specific class methods to extract information about your search spaces. For `ray.tune` these are:
+Finally, you are ready to use the mixin-specific methods to extract information about your search spaces. For `ray.tune` these are:
 
 1. `.ray_tune_param_space()` method that returns a dictionary describing the search space.
 2. `.ray_tune_best_values()` method that returns a dictionary of the best values to start hypertunning from.
@@ -152,11 +152,14 @@ class MyHyperparams(Hyperparams, RayTuneHyperparamsMixin):
         tunable=True,
     )
 
+
+params = MyHyperparams()
+
 # Search space config that ray.tune understands
-MyHyperparams.ray_tune_param_space()
+params.ray_tune_param_space()
 
 # Best values to start the hypertunning from
-MyHyperparams.ray_tune_best_values()
+params.ray_tune_best_values()
 ```
 
 ### Supporting other hypertunning libraries
