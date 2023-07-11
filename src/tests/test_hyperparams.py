@@ -139,18 +139,17 @@ def test_wrong_default_for_type() -> None:
 def test_adjust_relative_paths() -> None:
     class TestHyperparamsAdjustPaths(Hyperparams):
         class Config:
-            adjust_relative_paths = True
             relative_paths_root = "/rootdir"
 
         relative_path: str = HP(
             "Relative path",
             default="my/relative/path",
-            is_path=True,
+            adjust_relative_path=True,
         )
         absolute_path: str = HP(
             "Absolute path",
             default="/my/absolute/path",
-            is_path=True,
+            adjust_relative_path=True,
         )
         not_a_path: str = HP(
             "Not a path",
@@ -186,18 +185,15 @@ def test_adjust_relative_paths() -> None:
     assert p1.not_a_path == "other/string"
 
     class TestHyperparamsAdjustPathsDefaultRoot(Hyperparams):
-        class Config:
-            adjust_relative_paths = True
-
         relative_path: str = HP(
             "Relative path",
             default="my/relative/path",
-            is_path=True,
+            adjust_relative_path=True,
         )
         absolute_path: str = HP(
             "Absolute path",
             default="/my/absolute/path",
-            is_path=True,
+            adjust_relative_path=True,
         )
         not_a_path: str = HP(
             "Not a path",
@@ -217,18 +213,15 @@ def test_adjust_relative_paths() -> None:
     assert p2.not_a_path == "other/string"
 
     class TestHyperparamsDontAdjustPaths(Hyperparams):
-        class Config:
-            adjust_relative_paths = False
-
         relative_path: str = HP(
             "Relative path",
             default="my/relative/path",
-            is_path=True,
+            adjust_relative_path=False,
         )
         absolute_path: str = HP(
             "Absolute path",
             default="/my/absolute/path",
-            is_path=True,
+            adjust_relative_path=False,
         )
         not_a_path: str = HP(
             "Not a path",
@@ -247,24 +240,34 @@ def test_adjust_relative_paths() -> None:
     assert p3.absolute_path == "/other/absolute/path"
     assert p3.not_a_path == "other/string"
 
-    class TestHyperparamsNoConfig(Hyperparams):
-        relative_path: str = HP(
+    class TestHyperparamsAdjustSome(Hyperparams):
+        relative_path1: str = HP(
             "Relative path",
             default="my/relative/path",
-            is_path=True,
+            adjust_relative_path=True,
+        )
+        relative_path2: str = HP(
+            "Relative path",
+            default="my/relative/path",
+            adjust_relative_path=False,
+        )
+        relative_path3: str = HP(
+            "Relative path",
+            default="my/relative/path",
         )
         absolute_path: str = HP(
             "Absolute path",
             default="/my/absolute/path",
-            is_path=True,
         )
         not_a_path: str = HP(
             "Not a path",
             default="Some/string",
         )
 
-    p4 = TestHyperparamsNoConfig()
-    assert p4.relative_path == "my/relative/path"
+    p4 = TestHyperparamsAdjustSome()
+    assert p4.relative_path1 == os.path.join(os.getcwd(), "my/relative/path")
+    assert p4.relative_path2 == "my/relative/path"
+    assert p4.relative_path3 == "my/relative/path"
     assert p4.absolute_path == "/my/absolute/path"
     assert p4.not_a_path == "Some/string"
 
